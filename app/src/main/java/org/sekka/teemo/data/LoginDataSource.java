@@ -1,6 +1,6 @@
 package org.sekka.teemo.data;
 
-import org.sekka.teemo.data.model.LoggedInUser;
+import org.sekka.teemo.data.model.LoginCredentials;
 
 import java.io.IOException;
 
@@ -9,14 +9,12 @@ import java.io.IOException;
  */
 public class LoginDataSource {
 
-    public Result<LoggedInUser> login(String username, String password) {
+    public Result<LoginCredentials> login(String password) {
 
         try {
             // TODO: handle loggedInUser authentication
-            LoggedInUser fakeUser =
-                    new LoggedInUser(
-                            java.util.UUID.randomUUID().toString(),
-                            "Jane Doe");
+            LoginCredentials fakeUser =
+                    new LoginCredentials(0, "test", "test");
             return new Result.Success<>(fakeUser);
         } catch (Exception e) {
             return new Result.Error(new IOException("Error logging in", e));

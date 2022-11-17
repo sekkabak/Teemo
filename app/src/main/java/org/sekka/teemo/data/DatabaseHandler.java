@@ -1,24 +1,30 @@
-package org.sekka.teemo;
+package org.sekka.teemo.data;
 
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.net.wifi.hotspot2.pps.Credential;
+
+import org.sekka.teemo.data.model.LoginCredentials;
+
 import java.util.ArrayList;
 import java.util.List;
-
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 
 
 public class DatabaseHandler extends SQLiteOpenHelper {
     private static final int DATABASE_VERSION = 1;
-    private static final String DATABASE_NAME = "contactsManager";
+    private static final String TABLE_CREDENTIALS = "credentials";
+    private static final String CREDENTIALS_KEY_ID = "id";
+    private static final String CREDENTIALS_KEY_NAME = "name";
+    private static final String CREDENTIALS_KEY_PASSWD = "passwd";
+
+    private static final String DATABASE_NAME = "Teemo";
     private static final String TABLE_CONTACTS = "contacts";
-    private static final String KEY_ID = "id";
-    private static final String KEY_NAME = "name";
-    private static final String KEY_PH_NO = "phone_number";
+    private static final String CONTACTS_KEY_ID = "id";
+    private static final String CONTACTS_KEY_NAME = "name";
+    private static final String CONTACTS_KEY_PH_NO = "phone_number";
 
     public DatabaseHandler(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -34,15 +40,22 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
         String CREATE_CONTACTS_TABLE = "CREATE TABLE " + TABLE_CONTACTS + "("
-                + KEY_ID + " INTEGER PRIMARY KEY," + KEY_NAME + " TEXT,"
-                + KEY_PH_NO + " TEXT" + ")";
+                + CONTACTS_KEY_ID + " INTEGER PRIMARY KEY," + CONTACTS_KEY_NAME + " TEXT,"
+                + CONTACTS_KEY_PH_NO + " TEXT" + ")";
         db.execSQL(CREATE_CONTACTS_TABLE);
+
+
+        String CREATE_CREDENTIALS_TABLE = "CREATE TABLE " + TABLE_CREDENTIALS + "("
+                + CREDENTIALS_KEY_ID + " INTEGER PRIMARY KEY," + CREDENTIALS_KEY_NAME + " TEXT," + CREDENTIALS_KEY_PASSWD + " TEXT)";
+        db.execSQL(CREATE_CREDENTIALS_TABLE);
     }
 
     // Upgrading database
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         // Drop older table if existed
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_CREDENTIALS);
+
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_CONTACTS);
 
         // Create tables again
@@ -50,12 +63,12 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
     // code to add the new contact
-    void addContact(Contact contact) {
+    public void addContact(Contact contact) {
         SQLiteDatabase db = this.getWritableDatabase();
 
         ContentValues values = new ContentValues();
-        values.put(KEY_NAME, contact.getName()); // Contact Name
-        values.put(KEY_PH_NO, contact.getPhoneNumber()); // Contact Phone
+        values.put(CONTACTS_KEY_NAME, contact.getName()); // Contact Name
+        values.put(CONTACTS_KEY_PH_NO, contact.getPhoneNumber()); // Contact Phone
 
         // Inserting Row
         db.insert(TABLE_CONTACTS, null, values);
@@ -63,12 +76,39 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         db.close(); // Closing database connection
     }
 
+    public void addCredentials(LoginCredentials credentials) {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+        values.put(CREDENTIALS_KEY_NAME, credentials.get_name());
+        values.put(CREDENTIALS_KEY_PASSWD, credentials.get_passwd());
+        db.insert(TABLE_CREDENTIALS, null, values);
+        db.close();
+    }
+
+    public LoginCredentials getCredentials() {
+        String selectQuery = "SELECT  * FROM " + TABLE_CREDENTIALS + ";";
+        LoginCredentials credential = null;
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = db.rawQuery(selectQuery, null);
+        if (cursor != null) {
+            cursor.moveToFirst();
+            credential = new LoginCredentials(
+                    Integer.parseInt(cursor.getString(0)),
+                    cursor.getString(1),
+                    cursor.getString(2));
+        }
+
+        cursor.close();
+        return credential;
+    }
+
     // code to get the single contact
     Contact getContact(int id) {
         SQLiteDatabase db = this.getReadableDatabase();
 
-        Cursor cursor = db.query(TABLE_CONTACTS, new String[] { KEY_ID,
-                        KEY_NAME, KEY_PH_NO }, KEY_ID + "=?",
+        Cursor cursor = db.query(TABLE_CONTACTS, new String[] {CONTACTS_KEY_ID,
+                        CONTACTS_KEY_NAME, CONTACTS_KEY_PH_NO}, CONTACTS_KEY_ID + "=?",
                 new String[] { String.valueOf(id) }, null, null, null, null);
         if (cursor != null)
             cursor.moveToFirst();
@@ -109,18 +149,18 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getWritableDatabase();
 
         ContentValues values = new ContentValues();
-        values.put(KEY_NAME, contact.getName());
-        values.put(KEY_PH_NO, contact.getPhoneNumber());
+        values.put(CONTACTS_KEY_NAME, contact.getName());
+        values.put(CONTACTS_KEY_PH_NO, contact.getPhoneNumber());
 
         // updating row
-        return db.update(TABLE_CONTACTS, values, KEY_ID + " = ?",
+        return db.update(TABLE_CONTACTS, values, CONTACTS_KEY_ID + " = ?",
                 new String[] { String.valueOf(contact.getID()) });
     }
 
     // Deleting single contact
     public void deleteContact(Contact contact) {
         SQLiteDatabase db = this.getWritableDatabase();
-        db.delete(TABLE_CONTACTS, KEY_ID + " = ?",
+        db.delete(TABLE_CONTACTS, CONTACTS_KEY_ID + " = ?",
                 new String[] { String.valueOf(contact.getID()) });
         db.close();
     }

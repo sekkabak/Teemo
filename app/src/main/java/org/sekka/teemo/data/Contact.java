@@ -1,4 +1,4 @@
-package org.sekka.teemo;
+package org.sekka.teemo.data;
 
 public class Contact {
     int _id;
