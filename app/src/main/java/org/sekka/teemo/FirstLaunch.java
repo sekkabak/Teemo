@@ -4,13 +4,18 @@ import static android.hardware.biometrics.BiometricManager.Authenticators.BIOMET
 import static android.hardware.biometrics.BiometricManager.Authenticators.DEVICE_CREDENTIAL;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.biometric.*;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
+import android.widget.CheckBox;
 import android.widget.EditText;
 
 import java.security.MessageDigest;
@@ -18,7 +23,8 @@ import java.security.NoSuchAlgorithmException;
 import java.util.List;
 
 public class FirstLaunch extends AppCompatActivity {
-
+    private String logTag = "@@@@@@@@@@@@@@@@@@@@@";
+    
 //    private Executor executor;
 //    private BiometricPrompt biometricPrompt;
 //    private BiometricPrompt.PromptInfo promptInfo;
@@ -28,28 +34,50 @@ public class FirstLaunch extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_first_launch);
 
+        checkForBiometrics();
 
-//        BiometricManager biometricManager = BiometricManager.from(this);
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-//            switch (biometricManager.canAuthenticate(BIOMETRIC_STRONG | DEVICE_CREDENTIAL)) {
-//                case BiometricManager.BIOMETRIC_SUCCESS:
-//                    Log.d("MY_APP_TAG", "App can authenticate using biometrics.");
-//                    break;
-//                case BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE:
-//                    Log.e("MY_APP_TAG", "No biometric features available on this device.");
-//                    break;
-//                case BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE:
-//                    Log.e("MY_APP_TAG", "Biometric features are currently unavailable.");
-//                    break;
-//                case BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED:
-//                    // Prompts the user to create credentials that your app accepts.
-//                    final Intent enrollIntent = new Intent(Settings.ACTION_BIOMETRIC_ENROLL);
-//                    enrollIntent.putExtra(Settings.EXTRA_BIOMETRIC_AUTHENTICATORS_ALLOWED,
-//                            BIOMETRIC_STRONG | DEVICE_CREDENTIAL);
+    }
+
+    private void checkForBiometrics() {
+        BiometricManager biometricManager = BiometricManager.from(this);
+        switch (biometricManager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG | BiometricManager.Authenticators.DEVICE_CREDENTIAL)) {
+            case BiometricManager.BIOMETRIC_SUCCESS:
+                setBiometricCheckbox(true);
+                Log.d(logTag, "App can authenticate using biometrics.");
+                break;
+            case BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE:
+                Log.e(logTag, "No biometric features available on this device.");
+                break;
+            case BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE:
+                Log.e(logTag, "Biometric features are currently unavailable.");
+                break;
+            case BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED:
+                Log.e(logTag, "0");
+                // Prompts the user to create credentials that your app accepts.
+                final Intent enrollIntent = new Intent(Settings.ACTION_BIOMETRIC_ENROLL);
+                enrollIntent.putExtra(Settings.EXTRA_BIOMETRIC_AUTHENTICATORS_ALLOWED,
+                        BIOMETRIC_STRONG | DEVICE_CREDENTIAL);
 //                    startActivityForResult(enrollIntent, REQUEST_CODE);
-//                    break;
-//            }
-//        }
+                break;
+            case BiometricManager.BIOMETRIC_ERROR_SECURITY_UPDATE_REQUIRED:
+                Log.e(logTag, "1");
+                break;
+            case BiometricManager.BIOMETRIC_ERROR_UNSUPPORTED:
+                Log.e(logTag, "2");
+                break;
+            case BiometricManager.BIOMETRIC_STATUS_UNKNOWN:
+                Log.e(logTag, "3");
+                break;
+        }
+    }
+
+    private void setBiometricCheckbox(boolean isActive) {
+        CheckBox checkBox = findViewById(R.id.biometric_checkBox);
+
+        if (isActive) {
+            checkBox.setChecked(true);
+            checkBox.setTextColor(Color.GREEN);
+        }
     }
 
     private void InitDatabase() {
@@ -110,7 +138,7 @@ public class FirstLaunch extends AppCompatActivity {
 
         InitDatabase();
 
-        AlertDialog.Builder dlgAlert  = new AlertDialog.Builder(this);
+        AlertDialog.Builder dlgAlert = new AlertDialog.Builder(this);
         dlgAlert.setCancelable(false);
         dlgAlert.setMessage("Dane uwierzytelniające zostały zapisane");
         FirstLaunch that = this;

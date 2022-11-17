@@ -58,6 +58,16 @@
             android:layout_marginTop="50dp"
             android:onClick="onSubmit"
             />
+
+        <CheckBox
+            android:id="@+id/biometric_checkBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:clickable="false"
+            android:focusable="false"
+            android:text="Obsługa logowania biometrycznego"
+            android:textColor="#FF0000" />
+
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

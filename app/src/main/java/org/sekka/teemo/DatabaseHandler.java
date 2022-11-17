@@ -25,6 +25,11 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         //3rd argument to be passed is CursorFactory instance
     }
 
+    // for testing :)
+    public void DeleteDatabase(Context context) {
+        context.deleteDatabase(DATABASE_NAME);
+    }
+
     // Creating Tables
     @Override
     public void onCreate(SQLiteDatabase db) {

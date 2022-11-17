@@ -21,12 +21,19 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        DatabaseHandler db = new DatabaseHandler(this);
+
+
         if(checkForFirstLaunch() ) {
             Intent switchActivityIntent = new Intent(this, FirstLaunch.class);
             startActivity(switchActivityIntent);
         } else {
 
         }
+    }
+
+    private void deleteDatabase() {
+
     }
 
     private boolean checkForFirstLaunch() {
