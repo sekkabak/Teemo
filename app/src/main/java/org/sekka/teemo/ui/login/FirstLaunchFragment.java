@@ -3,22 +3,23 @@ package org.sekka.teemo.ui.login;
 import static android.hardware.biometrics.BiometricManager.Authenticators.BIOMETRIC_STRONG;
 import static android.hardware.biometrics.BiometricManager.Authenticators.DEVICE_CREDENTIAL;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.biometric.BiometricManager;
 import androidx.biometric.BiometricPrompt;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
-import androidx.lifecycle.Observer;
-import androidx.lifecycle.ViewModelProvider;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
 import androidx.fragment.app.Fragment;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.security.keystore.KeyProperties;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -46,6 +47,8 @@ import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.concurrent.Executor;
 
+import javax.crypto.KeyGenerator;
+
 public class FirstLaunchFragment extends Fragment {
 
 //    private LoginViewModel loginViewModel;
@@ -57,6 +60,8 @@ public class FirstLaunchFragment extends Fragment {
     private Executor executor;
     private BiometricPrompt biometricPrompt;
     private BiometricPrompt.PromptInfo promptInfo;
+
+
 
 
     @Nullable
@@ -75,8 +80,8 @@ public class FirstLaunchFragment extends Fragment {
 //        loginViewModel = new ViewModelProvider(this, new LoginViewModelFactory())
 //                .get(LoginViewModel.class);
 
-        final EditText usernameEditText = binding.password1;
-        final EditText passwordEditText = binding.password2;
+        final EditText password1EditText = binding.password1;
+        final EditText password2EditText = binding.password2;
         final Button loginButton = binding.login;
         final ProgressBar loadingProgressBar = binding.loading;
 
@@ -127,11 +132,16 @@ public class FirstLaunchFragment extends Fragment {
             public void afterTextChanged(Editable s) {
 //                loginViewModel.loginDataChanged(usernameEditText.getText().toString(),
 //                        passwordEditText.getText().toString());
+                if(password1EditText.getText().toString().length() >= 4 && password1EditText.getText().toString().equals(password2EditText.getText().toString())) {
+                    loginButton.setEnabled(true);
+                } else {
+                    loginButton.setEnabled(false);
+                }
             }
         };
-        usernameEditText.addTextChangedListener(afterTextChangedListener);
-        passwordEditText.addTextChangedListener(afterTextChangedListener);
-        passwordEditText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+        password1EditText.addTextChangedListener(afterTextChangedListener);
+        password2EditText.addTextChangedListener(afterTextChangedListener);
+        password2EditText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
 
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
@@ -149,6 +159,7 @@ public class FirstLaunchFragment extends Fragment {
                 loadingProgressBar.setVisibility(View.VISIBLE);
 //                loginViewModel.login(usernameEditText.getText().toString(),
 //                        passwordEditText.getText().toString());
+                submit();
             }
         });
 
@@ -158,6 +169,43 @@ public class FirstLaunchFragment extends Fragment {
 
         if(biometrics_checkBox.isChecked()) createBiometricLogin();
     }
+
+    private void submit() {
+        if(biometrics_checkBox.isChecked()) {
+            AlertDialog.Builder dlgAlert = new AlertDialog.Builder(getActivity());
+            dlgAlert.setCancelable(false);
+            dlgAlert.setMessage("Dane uwierzytelniające zostały zapisane,\nczy chcesz ustawić uwierzytelnienie biometryczne?");
+            dlgAlert.setPositiveButton("Ok",
+                    new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            PromptBiometricsLogin();
+                        }
+                    });
+            dlgAlert.setNegativeButton("Nie",
+                    new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            BackToLogin();
+                        }
+                    });
+            AlertDialog alertDialog = dlgAlert.create();
+            alertDialog.show();
+        }
+        else {
+            AlertDialog.Builder dlgAlert = new AlertDialog.Builder(getActivity());
+            dlgAlert.setCancelable(false);
+            dlgAlert.setMessage("Dane uwierzytelniające zostały zapisane");
+            dlgAlert.setPositiveButton("Ok",
+                    new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            BackToLogin();
+                        }
+                    });
+            AlertDialog alertDialog = dlgAlert.create();
+            alertDialog.show();
+        }
+    }
+
+
 
     private void checkForBiometrics() {
         BiometricManager biometricManager = BiometricManager.from(getActivity());
@@ -196,28 +244,6 @@ public class FirstLaunchFragment extends Fragment {
         if (isActive) {
             biometrics_checkBox.setChecked(true);
             biometrics_checkBox.setTextColor(Color.GREEN);
-        }
-    }
-
-    private void InitDatabase() {
-        DatabaseHandler db = new DatabaseHandler(getActivity());
-
-        // Inserting Contacts
-        Log.d("Insert: ", "Inserting ..");
-        db.addContact(new Contact("Ravi", "9100000000"));
-        db.addContact(new Contact("Srinivas", "9199999999"));
-        db.addContact(new Contact("Tommy", "9522222222"));
-        db.addContact(new Contact("Karthik", "9533333333"));
-
-        // Reading all contacts
-        Log.d("Reading: ", "Reading all contacts..");
-        List<Contact> contacts = db.getAllContacts();
-
-        for (Contact cn : contacts) {
-            String log = "Id: " + cn.getID() + " ,Name: " + cn.getName() + " ,Phone: " +
-                    cn.getPhoneNumber();
-            // Writing Contacts to log
-            Log.d("Name: ", log);
         }
     }
 
@@ -309,8 +335,6 @@ public class FirstLaunchFragment extends Fragment {
         String welcome = getString(R.string.welcome) + model.get_name();
         // TODO : initiate successful logged in experience
         BackToLogin();
-
-
 
         if (getContext() != null && getContext().getApplicationContext() != null) {
             Toast.makeText(getContext().getApplicationContext(), welcome, Toast.LENGTH_LONG).show();

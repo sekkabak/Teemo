@@ -14,7 +14,7 @@ public class LoginDataSource {
         try {
             // TODO: handle loggedInUser authentication
             LoginCredentials fakeUser =
-                    new LoginCredentials(0, "test", "test");
+                    new LoginCredentials(0, "test", "test", true);
             return new Result.Success<>(fakeUser);
         } catch (Exception e) {
             return new Result.Error(new IOException("Error logging in", e));
