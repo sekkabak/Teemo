@@ -16,13 +16,17 @@ import android.widget.EditText;
 
 public class MainActivity extends AppCompatActivity {
 
+    private DatabaseHandler db;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        DatabaseHandler db = new DatabaseHandler(this);
+        db = new DatabaseHandler(this);
 
+        // TODO: DEBUG
+        db.DeleteDatabase(this);
 
         if(checkForFirstLaunch() ) {
             Intent switchActivityIntent = new Intent(this, FirstLaunch.class);
@@ -37,7 +41,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private boolean checkForFirstLaunch() {
-        DatabaseHandler db = new DatabaseHandler(this);
+        db = new DatabaseHandler(this);
         if(db.getAllContacts().isEmpty()) {
             return true;
         }
