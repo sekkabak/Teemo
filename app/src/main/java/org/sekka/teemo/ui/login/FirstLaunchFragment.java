@@ -11,7 +11,6 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.StringRes;
 import androidx.fragment.app.Fragment;
 
 import android.content.DialogInterface;
@@ -19,7 +18,6 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.provider.Settings;
-import android.security.keystore.KeyProperties;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -35,7 +33,6 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import org.sekka.teemo.data.Contact;
 import org.sekka.teemo.data.DatabaseHandler;
 import org.sekka.teemo.data.model.LoginCredentials;
 import org.sekka.teemo.databinding.FragmentFirstLaunchBinding;
@@ -44,15 +41,13 @@ import org.sekka.teemo.R;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.List;
 import java.util.concurrent.Executor;
 
-import javax.crypto.KeyGenerator;
-
 public class FirstLaunchFragment extends Fragment {
-
-//    private LoginViewModel loginViewModel;
     private FragmentFirstLaunchBinding binding;
+
+    public DatabaseHandler db;
+    private String password;
 
     private String logTag = "@@@@@@@@@@@@@@@@@@@@@";
     private CheckBox biometrics_checkBox;
@@ -61,9 +56,6 @@ public class FirstLaunchFragment extends Fragment {
     private BiometricPrompt biometricPrompt;
     private BiometricPrompt.PromptInfo promptInfo;
 
-
-
-
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -71,83 +63,43 @@ public class FirstLaunchFragment extends Fragment {
                              @Nullable Bundle savedInstanceState) {
 
         binding = FragmentFirstLaunchBinding.inflate(inflater, container, false);
+
+        db = new DatabaseHandler(getContext());
+
         return binding.getRoot();
+    }
+
+    private boolean areCredentialsValid(String password1, String password2) {
+        return password1.length() >= 4 && password1.equals(password2);
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-//        loginViewModel = new ViewModelProvider(this, new LoginViewModelFactory())
-//                .get(LoginViewModel.class);
-
         final EditText password1EditText = binding.password1;
         final EditText password2EditText = binding.password2;
         final Button loginButton = binding.login;
-        final ProgressBar loadingProgressBar = binding.loading;
-
-//        loginViewModel.getLoginFormState().observe(getViewLifecycleOwner(), new Observer<LoginFormState>() {
-//            @Override
-//            public void onChanged(@Nullable LoginFormState loginFormState) {
-//                if (loginFormState == null) {
-//                    return;
-//                }
-//                loginButton.setEnabled(loginFormState.isDataValid());
-//                if (loginFormState.getUsernameError() != null) {
-//                    usernameEditText.setError(getString(loginFormState.getUsernameError()));
-//                }
-//                if (loginFormState.getPasswordError() != null) {
-//                    passwordEditText.setError(getString(loginFormState.getPasswordError()));
-//                }
-//            }
-//        });
-
-//        loginViewModel.getLoginResult().observe(getViewLifecycleOwner(), new Observer<LoginResult>() {
-//            @Override
-//            public void onChanged(@Nullable LoginResult loginResult) {
-//                if (loginResult == null) {
-//                    return;
-//                }
-//                loadingProgressBar.setVisibility(View.GONE);
-//                if (loginResult.getError() != null) {
-//                    showLoginFailed(loginResult.getError());
-//                }
-//                if (loginResult.getSuccess() != null) {
-//                    updateUiWithUser(loginResult.getSuccess());
-//                }
-//            }
-//        });
 
         TextWatcher afterTextChangedListener = new TextWatcher() {
             @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-                // ignore
-            }
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) { /* ignore */ }
 
             @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                // ignore
-            }
+            public void onTextChanged(CharSequence s, int start, int before, int count) { /* ignore */ }
 
             @Override
             public void afterTextChanged(Editable s) {
-//                loginViewModel.loginDataChanged(usernameEditText.getText().toString(),
-//                        passwordEditText.getText().toString());
-                if(password1EditText.getText().toString().length() >= 4 && password1EditText.getText().toString().equals(password2EditText.getText().toString())) {
-                    loginButton.setEnabled(true);
-                } else {
-                    loginButton.setEnabled(false);
-                }
+                loginButton.setEnabled(areCredentialsValid(password1EditText.getText().toString(), password2EditText.getText().toString()));
             }
         };
         password1EditText.addTextChangedListener(afterTextChangedListener);
         password2EditText.addTextChangedListener(afterTextChangedListener);
         password2EditText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                 if (actionId == EditorInfo.IME_ACTION_DONE) {
-//                    loginViewModel.login(usernameEditText.getText().toString(),
-//                            passwordEditText.getText().toString());
+                    password = password1EditText.getText().toString();
+                    submitCredentials();
                 }
                 return false;
             }
@@ -156,26 +108,36 @@ public class FirstLaunchFragment extends Fragment {
         loginButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                loadingProgressBar.setVisibility(View.VISIBLE);
-//                loginViewModel.login(usernameEditText.getText().toString(),
-//                        passwordEditText.getText().toString());
-                submit();
+                password = password1EditText.getText().toString();
+                submitCredentials();
             }
         });
 
 
         biometrics_checkBox = binding.biometricCheckBox;
         checkForBiometrics();
-
+        password = password1EditText.getText().toString();
         if(biometrics_checkBox.isChecked()) createBiometricLogin();
     }
 
-    private void submit() {
+    private void submitCredentials() {
+        final ProgressBar loadingProgressBar = binding.loading;
+        final EditText password1EditText = binding.password1;
+        final EditText password2EditText = binding.password2;
+
+        if (!areCredentialsValid(password1EditText.getText().toString(), password2EditText.getText().toString())) {
+            showLoginFailed("Podane dane nie zgadzają się");
+            return;
+        }
+        loadingProgressBar.setVisibility(View.VISIBLE);
+
+        // TODO: zapisać dane password w bazie danych
+
         if(biometrics_checkBox.isChecked()) {
             AlertDialog.Builder dlgAlert = new AlertDialog.Builder(getActivity());
             dlgAlert.setCancelable(false);
             dlgAlert.setMessage("Dane uwierzytelniające zostały zapisane,\nczy chcesz ustawić uwierzytelnienie biometryczne?");
-            dlgAlert.setPositiveButton("Ok",
+            dlgAlert.setPositiveButton("Tak",
                     new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
                             PromptBiometricsLogin();
@@ -184,6 +146,8 @@ public class FirstLaunchFragment extends Fragment {
             dlgAlert.setNegativeButton("Nie",
                     new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
+                            password = password1EditText.getText().toString();
+                            addCredentials(password, false);
                             BackToLogin();
                         }
                     });
@@ -197,12 +161,15 @@ public class FirstLaunchFragment extends Fragment {
             dlgAlert.setPositiveButton("Ok",
                     new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
+                            password = password1EditText.getText().toString();
+                            addCredentials(password, false);
                             BackToLogin();
                         }
                     });
             AlertDialog alertDialog = dlgAlert.create();
             alertDialog.show();
         }
+        loadingProgressBar.setVisibility(View.INVISIBLE);
     }
 
 
@@ -302,8 +269,9 @@ public class FirstLaunchFragment extends Fragment {
                     Log.d(logTag, "Signature: " + ob.getSignature());
                 Toast.makeText(getContext(),
                         "Authentication succeeded!", Toast.LENGTH_SHORT).show();
-                BackToLogin();
 
+                addCredentials(password, true);
+                BackToLogin();
             }
 
             @Override
@@ -323,6 +291,15 @@ public class FirstLaunchFragment extends Fragment {
 
     }
 
+    private void addCredentials(String password, boolean isUsingBiometrics) {
+        LoginCredentials loginCredentials = new LoginCredentials();
+        loginCredentials.set_loginWithBiometrics(isUsingBiometrics);
+        loginCredentials.set_name("main");
+        loginCredentials.set_passwd(password);
+
+        db.addCredentials(loginCredentials);
+    }
+
     private void BackToLogin() {
         FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
         FragmentTransaction transaction = fragmentManager.beginTransaction();
@@ -331,17 +308,7 @@ public class FirstLaunchFragment extends Fragment {
         transaction.commit();
     }
 
-    private void updateUiWithUser(LoginCredentials model) {
-        String welcome = getString(R.string.welcome) + model.get_name();
-        // TODO : initiate successful logged in experience
-        BackToLogin();
-
-        if (getContext() != null && getContext().getApplicationContext() != null) {
-            Toast.makeText(getContext().getApplicationContext(), welcome, Toast.LENGTH_LONG).show();
-        }
-    }
-
-    private void showLoginFailed(@StringRes Integer errorString) {
+    private void showLoginFailed(String errorString) {
         if (getContext() != null && getContext().getApplicationContext() != null) {
             Toast.makeText(
                     getContext().getApplicationContext(),
