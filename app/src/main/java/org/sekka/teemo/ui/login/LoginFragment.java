@@ -2,6 +2,8 @@ package org.sekka.teemo.ui.login;
 
 import androidx.biometric.BiometricPrompt;
 import androidx.core.content.ContextCompat;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.annotation.NonNull;
@@ -25,6 +27,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.sekka.teemo.Main;
 import org.sekka.teemo.data.DatabaseHandler;
 import org.sekka.teemo.data.model.LoginCredentials;
 import org.sekka.teemo.databinding.FragmentLoginBinding;
@@ -56,19 +59,19 @@ public class LoginFragment extends Fragment {
 
         binding = FragmentLoginBinding.inflate(inflater, container, false);
         db = new DatabaseHandler(getContext());
-        loginCredentials = db.getCredentials();
-
-        if (loginCredentials != null && loginCredentials.is_loginWithBiometrics()) {
-            createBiometricLogin(getContext());
-            PromptBiometricsLogin();
-        }
-
         return binding.getRoot();
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        loginCredentials = db.getCredentials();
+
+        if (loginCredentials != null && loginCredentials.is_loginWithBiometrics()) {
+            createBiometricLogin(getContext());
+            PromptBiometricsLogin();
+        }
 
         final EditText passwordEditText = binding.password;
         final Button loginButton = binding.login;
@@ -99,6 +102,7 @@ public class LoginFragment extends Fragment {
 
         if (Objects.equals(loginCredentials.get_passwd(), passwordEditText.getText().toString())) {
             Toast.makeText(getContext(), "Authentication succeeded!", Toast.LENGTH_SHORT).show();
+            switchToLoggedIn();
         } else {
             showLoginFailed("fail");
         }
@@ -132,7 +136,7 @@ public class LoginFragment extends Fragment {
                     Log.d(logTag, "Signature: " + ob.getSignature());
                 Toast.makeText(context,
                         "Authentication succeeded!", Toast.LENGTH_SHORT).show();
-                // TODO: udało się
+                switchToLoggedIn();
             }
 
             @Override
@@ -150,6 +154,14 @@ public class LoginFragment extends Fragment {
                 .setNegativeButtonText("Use account password")
                 .build();
 
+    }
+
+    private void switchToLoggedIn() {
+        FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
+        FragmentTransaction transaction = fragmentManager.beginTransaction();
+        transaction.setReorderingAllowed(true);
+        transaction.replace(R.id.fragmentContainer_main, Main.class, null);
+        transaction.commit();
     }
 
     private void showLoginFailed(String errorString) {
