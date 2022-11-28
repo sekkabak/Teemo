@@ -1,29 +1,34 @@
-package org.sekka.teemo;
+package org.sekka.teemo.ui.compass;
 
 import static android.content.Context.SENSOR_SERVICE;
+
+import androidx.lifecycle.ViewModelProvider;
 
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.TextView;
 
-import androidx.fragment.app.Fragment;
-
+import org.sekka.teemo.R;
 import org.sekka.teemo.databinding.FragmentCompassBinding;
+import org.w3c.dom.Text;
 
-/**
- * A simple {@link Fragment} subclass.
- * Use the {@link Compass#newInstance} factory method to
- * create an instance of this fragment.
- */
-public class Compass extends Fragment {
-    private FragmentCompassBinding binding;
+import java.text.DecimalFormat;
+
+public class CompassFragment extends Fragment {
     private ImageView imageView;
+    private TextView textView;
 
     private SensorManager sensorManager;
     private Sensor sensorAccelerometer;
@@ -35,62 +40,40 @@ public class Compass extends Fragment {
     private float[] floatOrientation = new float[3];
     private float[] floatRotationMatrix = new float[9];
 
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
 
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
+    private FragmentCompassBinding binding;
+    private CompassViewModel mViewModel;
 
-    public Compass() {
-        // Required empty public constructor
-    }
-
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment Compass.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static Compass newInstance(String param1, String param2) {
-        Compass fragment = new Compass();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
-        return fragment;
+    public static CompassFragment newInstance() {
+        return new CompassFragment();
     }
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
-        }
-    }
-
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
+        CompassViewModel compassViewModel = new ViewModelProvider(this).get(CompassViewModel.class);
         binding = FragmentCompassBinding.inflate(inflater, container, false);
+        View root = binding.getRoot();
+        imageView = binding.compass;
+        textView = binding.speed;
         setupCompass();
-        return binding.getRoot();
+
+        return root;
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        binding = null;
     }
 
     private void setupCompass() {
-        imageView = binding.kompas;
         sensorManager = (SensorManager) requireActivity().getSystemService(SENSOR_SERVICE);
 
         sensorAccelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         sensorMagneticField = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
 
-        SensorEventListener sensorEventListenerAccelrometer = new SensorEventListener() {
+        SensorEventListener sensorEventListenerAccelerometer = new SensorEventListener() {
             @Override
             public void onSensorChanged(SensorEvent event) {
                 floatGravity = event.values;
@@ -99,6 +82,13 @@ public class Compass extends Fragment {
                 SensorManager.getOrientation(floatRotationMatrix, floatOrientation);
 
                 imageView.setRotation((float) (-floatOrientation[0]*180/3.14159));
+
+
+                // obliczanie dlugosci wektora
+//                double magnitude = Math.sqrt((floatGravity[0]*floatGravity[0]) + (floatGravity[1]*floatGravity[1]) + (floatGravity[1]*floatGravity[1]));
+
+                DecimalFormat df = new DecimalFormat("0.00");
+                textView.setText("Akcelerometr:\n " + df.format(floatGravity[0]) + "x " + df.format(floatGravity[1]) + "y "+ df.format(floatGravity[2]) +"z");
             }
 
             @Override
@@ -121,7 +111,7 @@ public class Compass extends Fragment {
             public void onAccuracyChanged(Sensor sensor, int accuracy) {
             }
         };
-        sensorManager.registerListener(sensorEventListenerAccelrometer, sensorAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
+        sensorManager.registerListener(sensorEventListenerAccelerometer, sensorAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
         sensorManager.registerListener(sensorEventListenerMagneticField, sensorMagneticField, SensorManager.SENSOR_DELAY_NORMAL);
     }
 }

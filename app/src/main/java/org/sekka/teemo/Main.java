@@ -10,10 +10,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import org.sekka.teemo.data.DatabaseHandler;
-import org.sekka.teemo.databinding.FragmentFirstLaunchBinding;
 import org.sekka.teemo.databinding.FragmentMainBinding;
-import org.sekka.teemo.ui.login.LoginFragment;
+import org.sekka.teemo.ui.compass.CompassFragment;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -77,7 +75,7 @@ public class Main extends Fragment {
                 FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
                 FragmentTransaction transaction = fragmentManager.beginTransaction();
                 transaction.setReorderingAllowed(true);
-                transaction.replace(R.id.fragmentContainer_main, Compass.class, null);
+                transaction.replace(R.id.fragmentContainer_main, CompassFragment.class, null);
                 transaction.commit();
             }
         });
