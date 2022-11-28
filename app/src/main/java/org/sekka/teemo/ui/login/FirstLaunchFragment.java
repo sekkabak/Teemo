@@ -171,7 +171,7 @@ public class FirstLaunchFragment extends Fragment {
         }
         loadingProgressBar.setVisibility(View.INVISIBLE);
     }
-    
+
     private void checkForBiometrics() {
         BiometricManager biometricManager = BiometricManager.from(getActivity());
         switch (biometricManager.canAuthenticate()) {

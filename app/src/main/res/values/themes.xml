@@ -16,4 +16,13 @@
         <item name="colorPrimaryDark">#512DA8</item>
         <item name="colorAccent">#FF4081</item>
     </style>
+
+    <style name="Theme.Teemo.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+
+    <style name="Theme.Teemo.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+
+    <style name="Theme.Teemo.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 </resources>
