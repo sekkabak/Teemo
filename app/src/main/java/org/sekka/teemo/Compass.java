@@ -1,12 +1,20 @@
 package org.sekka.teemo;
 
+import static android.content.Context.SENSOR_SERVICE;
+
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.os.Bundle;
-
-import androidx.fragment.app.Fragment;
-
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
+
+import androidx.fragment.app.Fragment;
+
+import org.sekka.teemo.databinding.FragmentCompassBinding;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -14,6 +22,19 @@ import android.view.ViewGroup;
  * create an instance of this fragment.
  */
 public class Compass extends Fragment {
+    private FragmentCompassBinding binding;
+    private ImageView imageView;
+
+    private SensorManager sensorManager;
+    private Sensor sensorAccelerometer;
+    private Sensor sensorMagneticField;
+
+    private float[] floatGravity = new float[3];
+    private float[] floatGeoMagnetic = new float[3];
+
+    private float[] floatOrientation = new float[3];
+    private float[] floatRotationMatrix = new float[9];
+
 
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -55,10 +76,55 @@ public class Compass extends Fragment {
         }
     }
 
+
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_compass, container, false);
+        binding = FragmentCompassBinding.inflate(inflater, container, false);
+        setupCompass();
+        return binding.getRoot();
+    }
+
+    private void setupCompass() {
+        imageView = binding.kompas;
+        sensorManager = (SensorManager) requireActivity().getSystemService(SENSOR_SERVICE);
+
+        sensorAccelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        sensorMagneticField = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+
+        SensorEventListener sensorEventListenerAccelrometer = new SensorEventListener() {
+            @Override
+            public void onSensorChanged(SensorEvent event) {
+                floatGravity = event.values;
+
+                SensorManager.getRotationMatrix(floatRotationMatrix, null, floatGravity, floatGeoMagnetic);
+                SensorManager.getOrientation(floatRotationMatrix, floatOrientation);
+
+                imageView.setRotation((float) (-floatOrientation[0]*180/3.14159));
+            }
+
+            @Override
+            public void onAccuracyChanged(Sensor sensor, int accuracy) {
+            }
+        };
+
+        SensorEventListener sensorEventListenerMagneticField = new SensorEventListener() {
+            @Override
+            public void onSensorChanged(SensorEvent event) {
+                floatGeoMagnetic = event.values;
+
+                SensorManager.getRotationMatrix(floatRotationMatrix, null, floatGravity, floatGeoMagnetic);
+                SensorManager.getOrientation(floatRotationMatrix, floatOrientation);
+
+                imageView.setRotation((float) (-floatOrientation[0]*180/3.14159));
+            }
+
+            @Override
+            public void onAccuracyChanged(Sensor sensor, int accuracy) {
+            }
+        };
+        sensorManager.registerListener(sensorEventListenerAccelrometer, sensorAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
+        sensorManager.registerListener(sensorEventListenerMagneticField, sensorMagneticField, SensorManager.SENSOR_DELAY_NORMAL);
     }
 }

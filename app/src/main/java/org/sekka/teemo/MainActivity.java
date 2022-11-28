@@ -53,7 +53,7 @@ public class MainActivity extends AppCompatActivity {
 
         db = new DatabaseHandler(this);
         // TODO: DEBUG
-//        db.DeleteDatabase(this);
+        db.DeleteDatabase(this);
 
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction transaction = fragmentManager.beginTransaction();
