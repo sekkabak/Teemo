@@ -171,12 +171,10 @@ public class FirstLaunchFragment extends Fragment {
         }
         loadingProgressBar.setVisibility(View.INVISIBLE);
     }
-
-
-
+    
     private void checkForBiometrics() {
         BiometricManager biometricManager = BiometricManager.from(getActivity());
-        switch (biometricManager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG | BiometricManager.Authenticators.DEVICE_CREDENTIAL)) {
+        switch (biometricManager.canAuthenticate()) {
             case BiometricManager.BIOMETRIC_SUCCESS:
                 setBiometricCheckbox(true);
                 Log.d(logTag, "App can authenticate using biometrics.");
@@ -187,6 +185,7 @@ public class FirstLaunchFragment extends Fragment {
             case BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE:
                 Log.e(logTag, "Biometric features are currently unavailable.");
                 break;
+//            case BiometricManager.BIOMETRIC_ERROR_UNSUPPORTED:
             case BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED:
                 Log.e(logTag, "0");
                 // Prompts the user to create credentials that your app accepts.
@@ -194,15 +193,6 @@ public class FirstLaunchFragment extends Fragment {
                 enrollIntent.putExtra(Settings.EXTRA_BIOMETRIC_AUTHENTICATORS_ALLOWED,
                         BIOMETRIC_STRONG | DEVICE_CREDENTIAL);
 //                    startActivityForResult(enrollIntent, REQUEST_CODE);
-                break;
-            case BiometricManager.BIOMETRIC_ERROR_SECURITY_UPDATE_REQUIRED:
-                Log.e(logTag, "1");
-                break;
-            case BiometricManager.BIOMETRIC_ERROR_UNSUPPORTED:
-                Log.e(logTag, "2");
-                break;
-            case BiometricManager.BIOMETRIC_STATUS_UNKNOWN:
-                Log.e(logTag, "3");
                 break;
         }
     }
