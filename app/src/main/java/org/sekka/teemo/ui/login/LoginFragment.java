@@ -12,6 +12,7 @@ import androidx.annotation.StringRes;
 import androidx.fragment.app.Fragment;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -27,6 +28,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.sekka.teemo.LoggedActivity;
 import org.sekka.teemo.Main;
 import org.sekka.teemo.data.DatabaseHandler;
 import org.sekka.teemo.data.model.LoginCredentials;
@@ -157,11 +159,8 @@ public class LoginFragment extends Fragment {
     }
 
     private void switchToLoggedIn() {
-        FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
-        FragmentTransaction transaction = fragmentManager.beginTransaction();
-        transaction.setReorderingAllowed(true);
-        transaction.replace(R.id.fragmentContainer_main, Main.class, null);
-        transaction.commit();
+        Intent intent = new Intent(getContext(),  LoggedActivity.class);
+        startActivity(intent);
     }
 
     private void showLoginFailed(String errorString) {
