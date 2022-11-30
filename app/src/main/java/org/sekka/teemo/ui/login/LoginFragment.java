@@ -1,21 +1,8 @@
 package org.sekka.teemo.ui.login;
 
-import androidx.biometric.BiometricPrompt;
-import androidx.core.content.ContextCompat;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
-import androidx.lifecycle.Observer;
-import androidx.lifecycle.ViewModelProvider;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.annotation.StringRes;
-import androidx.fragment.app.Fragment;
-
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -28,13 +15,16 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.biometric.BiometricPrompt;
+import androidx.core.content.ContextCompat;
+import androidx.fragment.app.Fragment;
+
 import org.sekka.teemo.LoggedActivity;
-import org.sekka.teemo.Main;
 import org.sekka.teemo.data.DatabaseHandler;
 import org.sekka.teemo.data.model.LoginCredentials;
 import org.sekka.teemo.databinding.FragmentLoginBinding;
-
-import org.sekka.teemo.R;
 
 import java.util.Objects;
 import java.util.concurrent.Executor;
@@ -58,7 +48,6 @@ public class LoginFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater,
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-
         binding = FragmentLoginBinding.inflate(inflater, container, false);
         db = new DatabaseHandler(getContext());
         return binding.getRoot();

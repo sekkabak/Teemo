@@ -7,39 +7,62 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelProvider;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
+import androidx.navigation.NavController;
+import androidx.navigation.NavDirections;
+import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import org.sekka.teemo.data.model.Haslo;
+import org.sekka.teemo.R;
+import org.sekka.teemo.data.DatabaseHandler;
+import org.sekka.teemo.data.model.StoredCredential;
 import org.sekka.teemo.databinding.FragmentHomeBinding;
+import org.sekka.teemo.ui.recordnew.RecordNewFragment;
 
 import java.util.ArrayList;
 
 public class HomeFragment extends Fragment {
 
-    private ArrayList<Haslo> haslos;
+    private ArrayList<StoredCredential> storedCredentials;
     private FragmentHomeBinding binding;
+    public DatabaseHandler db;
+    public NavController navController;
+    StoredCredentialsAdapter storedCredentialsAdapter;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-        HomeViewModel homeViewModel =
-                new ViewModelProvider(this).get(HomeViewModel.class);
-
         binding = FragmentHomeBinding.inflate(inflater, container, false);
+        db = new DatabaseHandler(getContext());
         View root = binding.getRoot();
 
-//        final TextView textView = binding.textHome;
-//        homeViewModel.getText().observe(getViewLifecycleOwner(), textView::setText);
-
+        // TODO
         RecyclerView recyclerView = (RecyclerView) binding.lista;
-        haslos = Haslo.createHasloList(20);
-        HaslaAdapter haslaAdapter = new HaslaAdapter(haslos);
-        recyclerView.setAdapter(haslaAdapter);
+//        storedCredentials = StoredCredential.createStoredCredentialList(20);
+        storedCredentials = db.getStoredCredentials();
+
+        storedCredentialsAdapter = new StoredCredentialsAdapter(storedCredentials, this);
+        recyclerView.setAdapter(storedCredentialsAdapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
+        navController = NavHostFragment.findNavController(this);
+        binding.createButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Bundle bundle = new Bundle();
+                bundle.putInt("recordID", -1);
+                navController.navigate(R.id.action_nav_home_to_record_new,bundle);
+            }
+        });
 
         return root;
+    }
+
+    public void DeleteStoredCred(int id) {
+        db.deleteStoredCredentials(id);
+        storedCredentialsAdapter.storedCredentials = db.getStoredCredentials();
+        storedCredentialsAdapter.notifyDataSetChanged();
     }
 
     @Override

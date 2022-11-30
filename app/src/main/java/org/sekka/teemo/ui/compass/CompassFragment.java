@@ -42,7 +42,6 @@ public class CompassFragment extends Fragment {
 
 
     private FragmentCompassBinding binding;
-    private CompassViewModel mViewModel;
 
     public static CompassFragment newInstance() {
         return new CompassFragment();
@@ -51,7 +50,6 @@ public class CompassFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        CompassViewModel compassViewModel = new ViewModelProvider(this).get(CompassViewModel.class);
         binding = FragmentCompassBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
         imageView = binding.compass;

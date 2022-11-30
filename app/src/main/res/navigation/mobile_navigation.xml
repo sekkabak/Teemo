@@ -9,11 +9,35 @@
         android:id="@+id/nav_home"
         android:name="org.sekka.teemo.ui.home.HomeFragment"
         android:label="@string/menu_home"
-        tools:layout="@layout/fragment_home" />
+        tools:layout="@layout/fragment_home" >
+        <action
+            android:id="@+id/action_nav_home_to_record_new"
+            app:destination="@id/record_new">
+        <argument
+            android:name="recordID"
+            app:argType="integer"
+            android:defaultValue="-1" />
+        <argument
+            android:name="visibility"
+            app:argType="integer"
+            android:defaultValue="1" />
+    </action>
+    </fragment>
 
     <fragment
         android:id="@+id/nav_compass"
         android:name="org.sekka.teemo.ui.compass.CompassFragment"
         android:label="@string/menu_compass"
         tools:layout="@layout/fragment_compass" />
+
+    <fragment
+        android:id="@+id/record_new"
+        android:name="org.sekka.teemo.ui.recordnew.RecordNewFragment"
+        android:label="new_record"
+        tools:layout="@layout/fragment_record_new"
+        >
+        <action
+            android:id="@+id/action_record_new_to_nav_home"
+            app:destination="@id/nav_home" />
+    </fragment>
 </navigation>
